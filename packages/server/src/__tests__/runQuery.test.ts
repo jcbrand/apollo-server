@@ -1170,7 +1170,8 @@ describe('runQuery', () => {
 
       const documentStore = new KeyvLRU<DocumentNode>({
         store: new LRU<DocumentNode>({
-          max: maxSize,
+          max: 100,
+          maxSize,
           length(obj) {
             return LRU.jsonBytesSizeCalculator(obj);
           },

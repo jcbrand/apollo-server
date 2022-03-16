@@ -9,14 +9,19 @@ import Keyv, { Store, type Options } from 'keyv';
 import type { WithRequired } from '@apollo/server-types';
 
 // LRUCache wrapper to implement the Keyv `Store` interface.
-export class LRU<V> implements Store<V> {
-  private cache: LRUCache<string, V>;
+export class LRU<T> implements Store<T> {
+  private cache: LRUCache<string, T>;
 
-  constructor(lruCacheOpts: LRUCache.Options<string, V>){
-    this.cache = new LRUCache(lruCacheOpts);
-  };
+  constructor(lruCacheOpts: LRUCache.Options<string, T>) {
+    this.cache = new LRUCache({
+      sizeCalculation(value) {
+        return LRU.jsonBytesSizeCalculator(value);
+      },
+      ...lruCacheOpts,
+    });
+  }
 
-  set(key: string, value: V, ttl?: number) {
+  set(key: string, value: T, ttl?: number) {
     const result = this.cache.set(key, value, { ttl });
     return result;
   }
@@ -31,6 +36,10 @@ export class LRU<V> implements Store<V> {
 
   clear() {
     this.cache.clear();
+  }
+
+  sizeCalculation() {
+    return this.cache.calculatedSize;
   }
 
   static jsonBytesSizeCalculator<T>(obj: T) {
@@ -59,19 +68,39 @@ export class KeyvLRU<T> extends Keyv<T> implements KeyvWithOpts<T> {
     super({
       namespace: 'apollo',
       store: new LRU<T>({
-        max: Math.pow(2, 20) * 30,
-        length(obj) {
-          return LRU.jsonBytesSizeCalculator(obj);
-        },
+        max: 100,
+        maxSize: Math.pow(2, 20) * 30,
       }),
       ...opts,
     });
   }
 
   getTotalSize() {
-    if ('length' in this.opts.store) {
-      return (this.opts.store as Store<T> & { length: number }).length;
+    if ('sizeCalculation' in this.opts.store) {
+      return (
+        this.opts.store as Store<T> & { sizeCalculation: () => number }
+      ).sizeCalculation();
     }
-    throw Error('Keyv.store does not implement length');
+    throw Error('Keyv.store does not implement sizeCalculation()');
+  }
+}
+export class PrefixingKeyv<K> extends Keyv<K> {
+  constructor(private wrapped: Keyv<K>, private prefix: string) {
+    super();
+  }
+
+  override get<TRaw extends boolean = false>(
+    key: string,
+    opts?: { raw?: TRaw },
+  ) {
+    return this.wrapped.get(this.prefix + key, opts);
+  }
+
+  override set(key: string, value: K, ttl?: number) {
+    return this.wrapped.set(this.prefix + key, value, ttl);
+  }
+
+  override delete(key: string) {
+    return this.wrapped.delete(this.prefix + key);
   }
 }

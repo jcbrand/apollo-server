@@ -37,7 +37,7 @@ const operations = {
 };
 
 describe('ApolloServerBase documentStore', () => {
-  it('documentStore - undefined', async () => {
+  fit('documentStore - undefined', async () => {
     const server = new ApolloServerBase<BaseContext>({
       typeDefs,
       resolvers,

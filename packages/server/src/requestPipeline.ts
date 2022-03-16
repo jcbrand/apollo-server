@@ -50,7 +50,6 @@ import type {
 } from '@apollo/server-types';
 
 import { Dispatcher } from './utils/dispatcher';
-import Keyv from 'keyv';
 
 export { GraphQLRequest, GraphQLResponse, GraphQLRequestContext };
 
@@ -58,6 +57,7 @@ import createSHA from './utils/createSHA';
 import { HttpQueryError } from './runHttpQuery';
 import type { DocumentStore } from './types';
 import { Headers } from 'node-fetch';
+import type Keyv from 'keyv';
 
 export const APQ_CACHE_PREFIX = 'apq:';
 
@@ -145,18 +145,6 @@ export async function processGraphQLRequest<TContext>(
     // We'll store a reference to the persisted query cache so we can actually
     // do the write at a later point in the request pipeline processing.
     persistedQueryCache = config.persistedQueries.cache;
-
-    // This is a bit hacky, but if `config` came from direct use of the old
-    // apollo-server 1.0-style middleware (graphqlExpress etc, not via the
-    // ApolloServer class), it won't have been converted to
-    // PrefixingKeyValueCache yet.
-
-    // FIXME! I have no idea how this worked before - this would create a new cache
-    // every time we received a request which is pointless. Am I missing something??
-    if (!(persistedQueryCache instanceof Keyv)) {
-      persistedQueryCache = new Keyv<string>({ namespace: APQ_CACHE_PREFIX });
-      config.persistedQueries.cache = persistedQueryCache;
-    }
 
     queryHash = extensions.persistedQuery.sha256Hash;
 

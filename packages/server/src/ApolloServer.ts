@@ -11,7 +11,6 @@ import {
   print,
 } from 'graphql';
 import resolvable, { Resolvable } from '@josephg/resolvable';
-import Keyv from 'keyv';
 import type {
   ApolloServerPlugin,
   GraphQLServiceContext,
@@ -53,7 +52,7 @@ import { InternalPluginId, pluginIsInternal } from './internalPlugin';
 import { newCachePolicy } from './cachePolicy';
 import { GatewayIsTooOldError, SchemaManager } from './utils/schemaManager';
 import { cloneObject } from './runHttpQuery';
-import { KeyvLRU } from './utils/KeyvLRU';
+import { KeyvLRU, PrefixingKeyv } from './utils/KeyvLRU';
 
 const NoIntrospection = (context: ValidationContext) => ({
   Field(node: FieldDefinitionNode) {
@@ -229,7 +228,7 @@ export class ApolloServerBase<TContext extends BaseContext> {
         requestOptions.persistedQueries ?? Object.create(null);
 
       requestOptions.persistedQueries = {
-        cache: apqCache ?? new Keyv({ namespace: APQ_CACHE_PREFIX }),
+        cache: new PrefixingKeyv(apqCache, APQ_CACHE_PREFIX),
         ...apqOtherOptions,
       };
     } else {
