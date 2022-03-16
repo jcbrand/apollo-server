@@ -9,17 +9,28 @@ import Keyv, { Store, type Options } from 'keyv';
 import type { WithRequired } from '@apollo/server-types';
 
 // LRUCache wrapper to implement the Keyv `Store` interface.
-export class LRU<V> extends LRUCache<string, V> implements Store<V> {
-  delete(key: string): boolean {
-    if (super.has(key)) {
-      super.del(key);
-      return true;
-    }
-    return false;
+export class LRU<V> implements Store<V> {
+  private cache: LRUCache<string, V>;
+
+  constructor(lruCacheOpts: LRUCache.Options<string, V>){
+    this.cache = new LRUCache(lruCacheOpts);
+  };
+
+  set(key: string, value: V, ttl?: number) {
+    const result = this.cache.set(key, value, { ttl });
+    return result;
+  }
+
+  get(key: string) {
+    return this.cache.get(key);
+  }
+
+  delete(key: string) {
+    return this.cache.delete(key);
   }
 
   clear() {
-    return super.reset();
+    this.cache.clear();
   }
 
   static jsonBytesSizeCalculator<T>(obj: T) {
