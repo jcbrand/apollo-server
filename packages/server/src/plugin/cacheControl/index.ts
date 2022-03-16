@@ -40,10 +40,7 @@ export interface ApolloServerPluginCacheControlOptions {
 export function ApolloServerPluginCacheControl(
   options: ApolloServerPluginCacheControlOptions = Object.create(null),
 ): InternalApolloServerPlugin<BaseContext> {
-  let typeAnnotationCache: LRUCache<
-    GraphQLCompositeType,
-    CacheAnnotation
-  >;
+  let typeAnnotationCache: LRUCache<GraphQLCompositeType, CacheAnnotation>;
 
   let fieldAnnotationCache: LRUCache<
     GraphQLField<unknown, unknown>,
@@ -64,11 +61,12 @@ export function ApolloServerPluginCacheControl(
       // versions of Gateway older than 0.35.0, we should also run this code
       // from a schemaDidLoadOrUpdate instead of serverWillStart. Using
       // schemaDidLoadOrUpdate throws when combined with old gateways.)
-      typeAnnotationCache = new LRUCache<GraphQLCompositeType, CacheAnnotation>({
-        max: Object.values(schema.getTypeMap()).filter(
-          isCompositeType,
-        ).length
-      });
+      typeAnnotationCache = new LRUCache<GraphQLCompositeType, CacheAnnotation>(
+        {
+          max: Object.values(schema.getTypeMap()).filter(isCompositeType)
+            .length,
+        },
+      );
 
       fieldAnnotationCache = new LRUCache<
         GraphQLField<unknown, unknown>,
