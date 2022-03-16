@@ -39,7 +39,6 @@
     "async-retry": "^1.2.1",
     "express": "^4.17.1",
     "express-async-handler": "^1.2.0",
-    "fast-json-stable-stringify": "^2.1.0",
     "graphql-tag": "^2.11.0",
     "keyv": "^4.1.1",
     "keyv-lru": "3.0.4",
