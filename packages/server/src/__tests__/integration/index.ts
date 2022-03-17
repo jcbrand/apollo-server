@@ -1378,7 +1378,7 @@ export default ({
           query,
         });
 
-        expect(setSpy).toHaveBeenCalledWith(`apq:${hash}`, '{testString}', 0);
+        expect(setSpy).toHaveBeenCalledWith(`apq:${hash}`, '{testString}', undefined);
         expect(didResolveSource.mock.calls[0][0]).toHaveProperty(
           'source',
           query,
