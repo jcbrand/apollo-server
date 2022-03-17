@@ -6,7 +6,6 @@
 
 import LRUCache from 'lru-cache';
 import Keyv, { Store, type Options } from 'keyv';
-import type { WithRequired } from '@apollo/server-types';
 
 // LRUCache wrapper to implement the Keyv `Store` interface.
 export class LRU<T> implements Store<T> {
@@ -47,23 +46,7 @@ export class LRU<T> implements Store<T> {
   }
 }
 
-// FIXME Keyv.opts isn't defined in the typings
-// Related issue: https://github.com/DefinitelyTyped/DefinitelyTyped/pull/59154
-type KeyvClassOpts<T> = WithRequired<
-  Options<T>,
-  'deserialize' | 'namespace' | 'serialize' | 'store' | 'uri'
->;
-
-export type KeyvWithOpts<T> = Keyv<T> & {
-  opts: KeyvClassOpts<T>;
-};
-
-export class KeyvLRU<T> extends Keyv<T> implements KeyvWithOpts<T> {
-  // @ts-ignore FIXME Keyv.opts isn't defined in the typings. This is a workaround
-  // for now that we can remove once they're correct.
-  // Related issue: https://github.com/DefinitelyTyped/DefinitelyTyped/pull/59154
-  opts: KeyvClassOpts<T>;
-
+export class KeyvLRU<T> extends Keyv<T> {
   constructor(opts?: Options<T>) {
     super({
       namespace: 'apollo',
@@ -81,6 +64,7 @@ export class KeyvLRU<T> extends Keyv<T> implements KeyvWithOpts<T> {
         this.opts.store as Store<T> & { sizeCalculation: () => number }
       ).sizeCalculation();
     }
+    // TODO: probably don't throw here
     throw Error('Keyv.store does not implement sizeCalculation()');
   }
 }
