@@ -305,7 +305,7 @@ export async function processGraphQLRequest<TContext>(
       persistedQueryCache.set(
         queryHash,
         query,
-        config.persistedQueries?.ttl ?? 0,
+        config.persistedQueries?.ttl ?? undefined,
       ),
     ).catch(logger.warn);
   }
